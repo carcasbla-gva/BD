@@ -111,7 +111,7 @@ public class Network{
     private static void pulseParaContinuar() {
         Scanner sc = new Scanner(System.in);
         System.out.print(AnsiColor.BLUE.getCode());
-        System.out.println("Press enter to continue");
+        System.out.println("Presiona enter para continuar...");
         System.out.print(AnsiColor.RESET.getCode());
         sc.nextLine();
     }
@@ -129,9 +129,10 @@ public class Network{
         st.setInt(1, postToCheck);
         ResultSet rs = st.executeQuery();
         if (!rs.next()) {
+            return true;
+        } else {
             return false;
         }
-        return true;
     }
 
     /**
@@ -156,7 +157,20 @@ public class Network{
      */
     private static int selectPostTo() {
         Scanner sc = new Scanner(System.in);
-
+        System.out.println("Selecciona un post: ");
+        int i = 1;
+        PreparedStatement st = null;
+        String query = "SELECT * FROM posts";
+        try {
+            st = con.prepareStatement(query);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                System.out.println(i + ". " + rs.getString("content"));
+                i++;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+            }
         return 0; // Devuelve la opción seleccionada
     }
 
@@ -166,6 +180,15 @@ public class Network{
      * @throws SQLException
      */
     private static void insertComment(int postToComment) throws SQLException{
+        PreparedStatement st = null;
+        String query = "INSERT INTO comments (userId, postId, content) VALUES (?, ?, ?)";
+        st = con.prepareStatement(query);
+        st.setInt(1, userId);
+        st.setInt(2, postToComment);
+        System.out.print("Introduce tu comentario: ");
+        String comment = sc.nextLine();
+        st.setString(3, comment);
+        st.executeUpdate();
     }
 
     /**
@@ -174,7 +197,12 @@ public class Network{
      * @throws SQLException
      */
     private static void like(int postToLike) throws SQLException{
-
+        PreparedStatement st = null;
+        String query = "INSERT INTO likes (userId, postId) VALUES (?, ?)";
+        st = con.prepareStatement(query);
+        st.setInt(1, userId);
+        st.setInt(2, postToLike);
+        st.executeUpdate();
     }
 
     /**
@@ -182,7 +210,15 @@ public class Network{
      * @throws SQLException
      */
     private static void otherPosts() throws SQLException {
-
+        PreparedStatement st = null;
+        String query = "SELECT * FROM posts WHERE userId != ?";
+        st = con.prepareStatement(query);
+        st.setInt(1, userId);
+        ResultSet rs = st.executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getString("content"));
+            printComments(rs.getInt("id"));
+        }
     }
 
     /**
@@ -190,7 +226,14 @@ public class Network{
      * @throws SQLException
      */
     private static void allPosts() throws SQLException {
-
+        PreparedStatement st = null;
+        String query = "SELECT * FROM posts";
+        st = con.prepareStatement(query);
+        ResultSet rs = st.executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getString("content"));
+            printComments(rs.getInt("id"));
+        }
     }
 
     /**
@@ -198,8 +241,15 @@ public class Network{
      * @param postId
      * @throws SQLException
      */
-    private static void printComments(int postId) throws SQLException
-    {
+    private static void printComments(int postId) throws SQLException {
+        PreparedStatement st = null;
+        String query = "SELECT * FROM comments WHERE postId = ?";
+        st = con.prepareStatement(query);
+        st.setInt(1, postId);
+        ResultSet rs = st.executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getString("content"));
+        }
     }
 
     /**
@@ -236,7 +286,7 @@ public class Network{
     private static void newUser() throws SQLException{
         System.out.print("Introduce tu nombre: ");
         String nombre = sc.nextLine();
-        System.out.println("Introduce tu apellido: ");
+        System.out.print("Introduce tu apellido: ");
         String apellido = sc.nextLine();
         PreparedStatement st = null;
         String query = "INSERT INTO users (name, lastName) VALUES (?, ?)";
@@ -251,7 +301,15 @@ public class Network{
      * @throws SQLException
      */
     private static void post() throws SQLException {
-
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Introduce tu post: ");
+        String post = sc.nextLine();
+        PreparedStatement st = null;
+        String query = "INSERT INTO posts (userId, content) VALUES (?, ?)";
+        st = con.prepareStatement(query);
+        st.setInt(1, userId);
+        st.setString(2, post);
+        st.executeUpdate();
     }
 
     public static void printMenu() {

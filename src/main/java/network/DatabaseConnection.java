@@ -62,11 +62,9 @@ public class DatabaseConnection
         // usuario de una web que envía datos, es OBLIGADO crear un preparedStatement
         // para evitar ataques de inyección de SQL
         Statement st = con.createStatement();
-
         // Creamos el SQL que al ser de modificación de datos se hace con executeUpdate()
         String sql = "UPDATE empleados set sueldo = sueldo * 1.05";
         st.executeUpdate(sql);
-
         sql = "UPDATE empleados set departamento = 20 WHERE num = 3";
         st.executeUpdate(sql);
     }
