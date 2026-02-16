@@ -23,7 +23,11 @@ public class Network{
         boolean exists;
         while (true) {
             printMenu();
-            option = Integer.parseInt(sc.next());
+            try {
+                option = Integer.parseInt(sc.next());
+            } catch (NumberFormatException e) {
+                option = -1;
+            }
             // Borrar el \n final
             sc.nextLine();
             // exit acaba la ejecución del programa
@@ -109,7 +113,6 @@ public class Network{
     }
 
     private static void pulseParaContinuar() {
-        Scanner sc = new Scanner(System.in);
         System.out.print(AnsiColor.BLUE.getCode());
         System.out.println("Presiona enter para continuar...");
         System.out.print(AnsiColor.RESET.getCode());
@@ -128,7 +131,7 @@ public class Network{
         st = con.prepareStatement(query);
         st.setInt(1, postToCheck);
         ResultSet rs = st.executeQuery();
-        if (!rs.next()) {
+        if (rs.next()) {
             return true;
         } else {
             return false;
@@ -141,12 +144,12 @@ public class Network{
      */
     private static void myPosts() throws SQLException {
         PreparedStatement st = null;
-        String query = "SELECT * FROM posts WHERE userId = ?";
+        String query = "SELECT posts.id, posts.text, users.name FROM posts JOIN users ON posts.userId = users.id WHERE userId = ?";
         st = con.prepareStatement(query);
         st.setInt(1, userId);
         ResultSet rs = st.executeQuery();
         while (rs.next()) {
-            System.out.println(rs.getString("content"));
+            System.out.println(rs.getString("name") + ": " + rs.getString("text"));
             printComments(rs.getInt("id"));
         }
     }
@@ -156,22 +159,26 @@ public class Network{
      * @return
      */
     private static int selectPostTo() {
-        Scanner sc = new Scanner(System.in);
         System.out.println("Selecciona un post: ");
-        int i = 1;
         PreparedStatement st = null;
-        String query = "SELECT * FROM posts";
+        String query = "SELECT posts.id, posts.text, users.name FROM posts JOIN users ON posts.userId = users.id";
         try {
             st = con.prepareStatement(query);
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
-                System.out.println(i + ". " + rs.getString("content"));
-                i++;
+                System.out.println(rs.getInt("id") + ". " + rs.getString("name") + ": " + rs.getString("text"));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
-            }
-        return 0; // Devuelve la opción seleccionada
+        }
+        try {
+            int id = Integer.parseInt(sc.next());
+            sc.nextLine();
+            return id;
+        } catch (NumberFormatException e) {
+            sc.nextLine();
+            return 0;
+        }
     }
 
     /**
@@ -181,7 +188,7 @@ public class Network{
      */
     private static void insertComment(int postToComment) throws SQLException{
         PreparedStatement st = null;
-        String query = "INSERT INTO comments (userId, postId, content) VALUES (?, ?, ?)";
+        String query = "INSERT INTO comments (userId, postId, text) VALUES (?, ?, ?)";
         st = con.prepareStatement(query);
         st.setInt(1, userId);
         st.setInt(2, postToComment);
@@ -211,12 +218,12 @@ public class Network{
      */
     private static void otherPosts() throws SQLException {
         PreparedStatement st = null;
-        String query = "SELECT * FROM posts WHERE userId != ?";
+        String query = "SELECT posts.id, posts.text, users.name FROM posts JOIN users ON posts.userId = users.id WHERE userId != ?";
         st = con.prepareStatement(query);
         st.setInt(1, userId);
         ResultSet rs = st.executeQuery();
         while (rs.next()) {
-            System.out.println(rs.getString("content"));
+            System.out.println(rs.getString("name") + ": " + rs.getString("text"));
             printComments(rs.getInt("id"));
         }
     }
@@ -227,11 +234,11 @@ public class Network{
      */
     private static void allPosts() throws SQLException {
         PreparedStatement st = null;
-        String query = "SELECT * FROM posts";
+        String query = "SELECT posts.id, posts.text, users.name FROM posts JOIN users ON posts.userId = users.id";
         st = con.prepareStatement(query);
         ResultSet rs = st.executeQuery();
         while (rs.next()) {
-            System.out.println(rs.getString("content"));
+            System.out.println(rs.getString("name") + ": " + rs.getString("text"));
             printComments(rs.getInt("id"));
         }
     }
@@ -243,12 +250,12 @@ public class Network{
      */
     private static void printComments(int postId) throws SQLException {
         PreparedStatement st = null;
-        String query = "SELECT * FROM comments WHERE postId = ?";
+        String query = "SELECT comments.text, users.name FROM comments JOIN users ON comments.userId = users.id WHERE postId = ?";
         st = con.prepareStatement(query);
         st.setInt(1, postId);
         ResultSet rs = st.executeQuery();
         while (rs.next()) {
-            System.out.println(rs.getString("content"));
+            System.out.println("\t" + rs.getString("name") + " commented: " + rs.getString("text"));
         }
     }
 
@@ -259,7 +266,6 @@ public class Network{
      * @throws SQLException
      */
     private static boolean login() throws SQLException {
-        Scanner sc = new Scanner(System.in);
         System.out.print(AnsiColor.BLUE.getCode());
         System.out.print("Name: ");
         String name = sc.nextLine();
@@ -301,11 +307,10 @@ public class Network{
      * @throws SQLException
      */
     private static void post() throws SQLException {
-        Scanner sc = new Scanner(System.in);
         System.out.print("Introduce tu post: ");
         String post = sc.nextLine();
         PreparedStatement st = null;
-        String query = "INSERT INTO posts (userId, content) VALUES (?, ?)";
+        String query = "INSERT INTO posts (userId, text, likes) VALUES (?, ?, 0)";
         st = con.prepareStatement(query);
         st.setInt(1, userId);
         st.setString(2, post);
