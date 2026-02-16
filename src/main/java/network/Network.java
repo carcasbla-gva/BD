@@ -1,7 +1,5 @@
 package network;
 import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 public class Network{
@@ -144,7 +142,7 @@ public class Network{
      */
     private static void myPosts() throws SQLException {
         PreparedStatement st = null;
-        String query = "SELECT posts.id, posts.text, users.name FROM posts JOIN users ON posts.userId = users.id WHERE userId = ?";
+        String query = "SELECT posts.id, posts.text, users.name FROM posts JOIN users ON posts.userId = users.id WHERE posts.userId = ?";
         st = con.prepareStatement(query);
         st.setInt(1, userId);
         ResultSet rs = st.executeQuery();
@@ -218,7 +216,7 @@ public class Network{
      */
     private static void otherPosts() throws SQLException {
         PreparedStatement st = null;
-        String query = "SELECT posts.id, posts.text, users.name FROM posts JOIN users ON posts.userId = users.id WHERE userId != ?";
+        String query = "SELECT posts.id, posts.text, users.name FROM posts JOIN users ON posts.userId = users.id WHERE posts.userId != ?";
         st = con.prepareStatement(query);
         st.setInt(1, userId);
         ResultSet rs = st.executeQuery();
