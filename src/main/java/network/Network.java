@@ -123,7 +123,14 @@ public class Network{
      * @throws SQLException
      */
     private static boolean checkPostExists(int postToCheck) throws SQLException {
-
+        PreparedStatement st = null;
+        String query = "SELECT * FROM posts WHERE id = ?";
+        st = con.prepareStatement(query);
+        st.setInt(1, postToCheck);
+        ResultSet rs = st.executeQuery();
+        if (!rs.next()) {
+            return false;
+        }
         return true;
     }
 
@@ -132,7 +139,15 @@ public class Network{
      * @throws SQLException
      */
     private static void myPosts() throws SQLException {
-
+        PreparedStatement st = null;
+        String query = "SELECT * FROM posts WHERE userId = ?";
+        st = con.prepareStatement(query);
+        st.setInt(1, userId);
+        ResultSet rs = st.executeQuery();
+        while (rs.next()) {
+            System.out.println(rs.getString("content"));
+            printComments(rs.getInt("id"));
+        }
     }
 
     /**
@@ -140,6 +155,7 @@ public class Network{
      * @return
      */
     private static int selectPostTo() {
+        Scanner sc = new Scanner(System.in);
 
         return 0; // Devuelve la opción seleccionada
     }
